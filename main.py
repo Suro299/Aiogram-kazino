@@ -1,39 +1,23 @@
 from aiogram import Bot, Dispatcher, executor, types
 import config
-import time
-import asyncio
-import datetime
-import sqlite3 as sq
 
 from comp.other.reset_db import reset_db 
 
-from comp.slash_commands.start import slash_start
+from comp.slash_commands.set_unset_adm import set_unset_administrator as s_adm
 
+from comp.other.entry_check import entry_check 
+import comp.other.on_start_shut as on_start_shut
+
+from comp.slash_commands.user_list import users_list as s_user_list
+from comp.slash_commands.admin_list import admin_list as s_admins_list
+from comp.slash_commands.start import slash_start as s_start
+from comp.slash_commands.help import slash_help as s_help
+from comp.slash_commands.print_ballance import slash_bal as s_bal
+from comp.slash_commands.add_bal import slash_addball
 
 
 bot = Bot(config.TELEGRAM_TOKEN)
 dp = Dispatcher(bot)
-
-dt_start = time.time() 
-
-async def on_startup(_):
-    dt_for_startup = datetime.datetime.now().strftime("D/Y: [%D, %Y]\nTIME: [%H:%M:%S]\n")
-    print(f"=========================\n{dt_for_startup}\nBot Started\n=========================\n\n")
-    # await rassilka()
-
-async def on_shutdown(_):
-    dt = datetime.datetime.now().strftime("D/Y: [%D, %Y]\nTIME: [%H:%M:%S]\n")
-    time_ = f"{round(time.time() - dt_start, 2)}"
-    
-    if float(time_) >= 60:
-        time_ = f"{round((time.time() - dt_start) / 60, 2)} min"
-    else:
-        time_ = time_ + " sec"
-
-    msg = f"\n=========================\n{dt}\nBot Is Disabled\n\nThe bot was active for {time_}\n=========================\n\n"
-    print(msg)
-    # await bot.send_message("1621088799", msg)
-
 
 # /rd
 # =====================================================
@@ -48,39 +32,84 @@ async def rd(message: types.Message):
 # =====================================================
 
 
-# /adm
+# /ul
 # =====================================================
-# @dp.message_handler(commands="adm")
-# async def administrator(message: types.Message):
-#     if message.from_user.id == 1621088799:
-#         msg = message.text.split(" ")[1::]
-#         if len(msg) == 2:
-#             pass
-#             with sq.connect("./data/users_chat_id.db") as con:
-#                 cur = con.cursor()
+@dp.message_handler(commands=["ul", "Ul", "userlist", "uslist"])
+async def users_list(message: types.Message):
+    if await entry_check(message):
+        await s_user_list(message)
+    else:
+        await message.reply("Аккаунт не найден --> /start")
+# =====================================================
 
-#                 cur.execute(f"""
-#                     SELECT full_name, chat_id FROM us_chat_id WHERE admin = 0 
-#                 """)
-#                 print(cur.fetchall())
-#         else:
-#             await message.reply("/adm (id) (set/unset [0,1]) ")
-#     else:
-#         await message.reply("Недостаточно прав")
+# /al
 # =====================================================
+@dp.message_handler(commands=["al", "Al", "adminlist", "alist", "Alist"])
+async def admin_list(message: types.Message):
+    if await entry_check(message):
+        await s_admins_list(message)
+    else:
+        await message.reply("Аккаунт не найден --> /start")
+# =====================================================
+
+
+
+# /adm
+#=====================================================
+@dp.message_handler(commands=["adm", "Adm"])
+async def adm(message: types.Message):
+    if await entry_check(message):
+        await s_adm(message, bot)
+    else:
+        await message.reply("Аккаунт не найден --> /start")
+#=====================================================
 
 
 # /start
 # =====================================================
 @dp.message_handler(commands="start")
 async def start(message: types.Message):
-    print("as")
-    await slash_start(message)
+    await s_start(message, bot)
+# =====================================================
+
+
+# /help
+# =====================================================
+@dp.message_handler(commands=["help", "Help", "!"])
+async def help(message: types.Message):
+    if await entry_check(message):
+        await s_help(message)
+    else:
+        await message.reply("Аккаунт не найден --> /start")
+# =====================================================
+
+
+# /bal
+# =====================================================
+@dp.message_handler(commands=["bal", "Bal", "ball", "Ball", "ballance", "Ballance"])
+async def help(message: types.Message):
+    if await entry_check(message):
+        await s_bal(message)
+    else:
+        await message.reply("Аккаунт не найден --> /start")
+# =====================================================
+
+
+# /addbal
+# =====================================================
+@dp.message_handler(commands=["addbal"])
+async def help(message: types.Message):
+    if await entry_check(message):
+        await slash_addball(message)
+    else:
+        await message.reply("Аккаунт не найден --> /start")
 # =====================================================
 
 
 
 
+
 if __name__ == "__main__":
-    # from comp.other.rass import rassilka
-    executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown)
+    # from comp.other.rass import rassilka 
+
+    executor.start_polling(dp, on_startup=on_start_shut.on_startup, on_shutdown=on_start_shut.on_shutdown)

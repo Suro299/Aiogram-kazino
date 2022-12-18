@@ -3,7 +3,7 @@ import sqlite3 as sq
 from comp.keyboard_buttons.help_kb import kb_help_for_start
 
     
-async def slash_start(message):
+async def slash_start(message, bot):
     with sq.connect("./data/ballance.db") as con:
         cur = con.cursor()
         try:
@@ -50,5 +50,10 @@ async def slash_start(message):
             VALUES("{message.from_user.first_name},{message.from_user.last_name}", "{message.from_user.id}");
         """)
     #=========================================================================
+
+    with open("./img-stick/stickers/start_sticker.webp", "rb") as sticker:
+            await message.answer_sticker(sticker)
+ 
     await message.answer("<b>Аккаунт создан</b>", parse_mode="HTML")
-    await message.answer("Что бы узнать как использовать бота -> /help", reply_markup=kb_help_for_start)
+    await message.answer("Что бы узнать как использовать бота нажмите на кнопку", reply_markup=kb_help_for_start)
+    
